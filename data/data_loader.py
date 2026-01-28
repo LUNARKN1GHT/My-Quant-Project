@@ -99,3 +99,11 @@ class DataLoader:
 
         return results
 
+    def get_available_data(self):
+        """
+        获取本地已有的数据文件列表
+        :return: 文件列表及对应的信息
+        """
+        files = os.listdir(self.base_path)
+        csv_files = [f for f in files if f.endswith('.csv')]
+        return csv_files
