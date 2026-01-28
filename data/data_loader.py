@@ -1,4 +1,5 @@
 import os
+import time
 
 import pandas as pd
 import yfinance as yf
@@ -10,19 +11,19 @@ class DataLoader:
         类初始化，设置程序的存储仓库
         :param raw_path: 项目的数据存储仓库，也可以自定义
         """
-        self.base_path = base_path
         self.base_path = raw_path
         # 确保路径存在
         if not os.path.exists(self.base_path):
             os.makedirs(self.base_path)
 
-    def fetch_and_save(self, symbol: str, start: str, end: str, force_download=False):
+    def fetch_and_save(self, symbol: str, start: str, end: str, force_download=False, drop_na=False):
         """
         抓取并以标准格式保存数据
         :param symbol: 股票代码
         :param start: 开始日期
         :param end: 结束日期
         :param force_download: 是否强制重新下载数据, 默认 False
+        :param drop_na: 是否删除空空值行, 默认 False
         :return data: 下载的数据
         """
         try:
@@ -58,7 +59,8 @@ class DataLoader:
                 print(f"警告: 数据中缺少列: {missing_cols}")
 
             # 4. 添加数据质量检查
-            data.dropna(inplace=True)  # 删除含有 NaN 的行
+            if drop_na:
+                data.dropna(inplace=True)  # 删除含有 NaN 的行
 
             # 5. 保存
             data.to_csv(save_path)
