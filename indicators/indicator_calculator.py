@@ -84,6 +84,44 @@ class VolumeIndicators(BaseIndicator):
         return df
 
 
+class IndicatorCalculator:
+    """综合指标计算器, 整合所有指标功能"""
+
+    @staticmethod
+    def add_all_indicators(df, config=None):
+        """
+        一次性添加所有指标
+        :param df: 输入数据框
+        :param config: 指标配置字典，可选
+        :return df: 计算后的结果
+        """
+        if config is None:
+            config = {
+                'trend': {'sma_short': 20, 'sma_long': 60, 'ema_period': 20},
+                'momentum': {'rsi_period': 14},
+                'volatility': {'bb_period': 20, 'atr_period': 14},
+                'volume': True
+            }
+
+        # 添加趋势指标
+        df = TrendIndicators.add_sma(df, config['trend']['sma_short'], config['trend']['sma_long'])
+        df = TrendIndicators.add_ema(df, config['trend']['ema_period'])
+
+        # 添加动量指标
+        df = MomentumIndicators.add_rsi(df, config['momentum']['rsi_period'])
+
+        # 添加波动率指标
+        df = VolatilityIndicators.add_bollinger_bands(df, config['volatility']['bb_period'])
+        df = VolatilityIndicators.add_atr(df, config['volatility']['atr_period'])
+
+        # 添加成交量指标（如果数据中有成交量）
+        if 'Volume' in df.columns and config['volume']:
+            df = VolumeIndicators.add_obv(df)
+            df = VolumeIndicators.add_vwap(df)
+
+        return df
+
+
 class IndicatorAppender:
     @staticmethod
     def add_trend_indicators(df):
