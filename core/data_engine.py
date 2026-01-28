@@ -1,6 +1,6 @@
 # 数据引擎
 import os
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import pandas as pd
 
@@ -39,6 +39,37 @@ class DataEngine:
             first_key = next(iter(self._cache))
             del self._cache[first_key]
         self._cache[symbol] = df
+
+    def get_symbol_data(self, symbol: str, start: str = None, end: str = None,
+                        use_processed: bool = False) -> Optional[pd.DataFrame]:
+        """获取单只股票数据, 并自动按日期切片"""
+        df = None
+
+        # 1. 优先看内存缓存
+        if symbol in self._cache:
+            df = self._cache[symbol]
+        else:
+            # 2. 尝试加载文件 (优先 processed)
+            folder = self.processed_path if use_processed else self.raw_path
+            # 兼容 parquet 和 csv
+            for ext in ['parquet', 'csv']:
+                path = os.path.join(folder, f"{symbol}.{ext}")
+                if os.path.exists(path):
+                    df = self.loader.load_local(path)
+                    self._manage_cache(symbol, df)
+                    break
+
+        if df is None:
+            print(f"[DataEngine] 错误: 找不到 {symbol} 的本地数据")
+            return None
+
+        # 3. 按日期切片 (Slice)
+        if start or end:
+            # 确保索引是日期类型且排序
+            df = df.sort_index()
+            return df.loc[start:end].copy()
+
+        return df.copy()
 
     def update_all_data(self, start: str, end: str):
         """批量下载并存储"""
