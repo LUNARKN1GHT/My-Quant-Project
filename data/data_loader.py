@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Optional
 
 import pandas as pd
 import yfinance as yf
@@ -21,59 +22,51 @@ class DataLoader:
         if not os.path.exists(self.base_path):
             os.makedirs(self.base_path, exist_ok=True)
 
-    def fetch_and_save(self, symbol: str, start: str, end: str, force_download=False, drop_na=False):
+    def fetch_and_save(self, symbol: str, start: str, end: str,
+                       force_download=False,
+                       use_parquet: bool = True) -> Optional[pd.DataFrame]:
         """
-        抓取并以标准格式保存数据
-        :param symbol: 股票代码
-        :param start: 开始日期
-        :param end: 结束日期
-        :param force_download: 是否强制重新下载数据, 默认 False
-        :param drop_na: 是否删除空空值行, 默认 False
-        :return data: 下载的数据
+        抓取并保存数据. Parquet 格式更适合量化
         """
         try:
-            print(f"开始同步 {symbol} 数据 （{start} 至 {end}）...")
-
-            # 统一文件名格式：代码_开始日期_结束日期.csv
-            file_name = f"{symbol}_{start.replace('-', '')}_{end.replace('-', '')}.csv"
+            # 简化文件名, 方便数据管理
+            ext = "parquet" if use_parquet else "csv"
+            file_name = f"{symbol}.{ext}"
             save_path = os.path.join(self.base_path, file_name)
 
-            # 检查是否已存在文件且不需要强制下载
+            # 检查逻辑: 如果不是强制下载且文件存在, 直接加载
             if os.path.exists(save_path) and not force_download:
-                print(f"文件已存在：{save_path}，跳过下载。如需重新下载，请使用force_download=True")
+                print(f"[DataLoader] {symbol} 已存在, 正在从本地加载...")
                 return self.load_local(save_path)
 
-            # 1. 下载数据
+            print(f"[DataLoader] 正在从 Yahoo Finance 下载 {symbol}...")
             data = yf.download(symbol, start=start, end=end, auto_adjust=True)
 
-            # 如果列是多层索引,我们只取一列
+            if data.empty:
+                print(f"警告: 未获取到 {symbol} 的数据")
+                return None
+
+            # --- 核心清理步骤 ---
+            # 1. 强制平刷多层索引
             if isinstance(data.columns, pd.MultiIndex):
                 data.columns = data.columns.get_level_values(0)
 
-            # 2. 检查并转换类型
+            # 2. 转换类型并出去可能的时区信息
             data = data.astype(float)
+            if data.index.tz is not None:
+                data.index = data.index.tz_localize(None)
 
-            if data.empty:
-                print(f"警告：未获取到 {symbol} 的数据")
-                return None
+            # 3. 保存
+            if use_parquet:
+                data.to_parquet(save_path)
+            else:
+                data.to_csv(save_path)
 
-            # 3. 数据验证 - 确保必需的列存在
-            required_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
-            missing_cols = [col for col in required_columns if col not in data.columns]
-            if missing_cols:
-                print(f"警告: 数据中缺少列: {missing_cols}")
-
-            # 4. 添加数据质量检查
-            if drop_na:
-                data.dropna(inplace=True)  # 删除含有 NaN 的行
-
-            # 5. 保存
-            data.to_csv(save_path)
-            print(f"数据成功保存至：{save_path}")
+            print(f"[DataLoader] {symbol} 成功保存至: {save_path}")
             return data
 
         except Exception as e:
-            print(f"获取数据时发生错误：{e}")
+            print(f"[DataLoader] 错误: {symbol} 处理失败 - {e}")
             return None
 
     @staticmethod
