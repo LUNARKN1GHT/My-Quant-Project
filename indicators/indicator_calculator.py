@@ -2,13 +2,24 @@ import pandas as pd
 import pandas_ta as ta
 
 
+class BaseIndicator:
+    """指标基类, 定义通用接口"""
+
+    def __init__(self):
+        pass
+
+    def calculate(self, df):
+        """计算指标的方法, 子类必须实现"""
+        raise NotImplementedError("子类必须实现calculate方法")
+
+
 class IndicatorAppender:
     @staticmethod
     def add_trend_indicators(df):
         """添加趋势指标: 移动平均线"""
         # 计算 20日 和 60日 均线
         close_prices = df['Close'].astype(float)
-        
+
         df['SMA_20'] = ta.sma(close_prices, length=20)
         df['SMA_60'] = ta.sma(close_prices, length=60)
         return df
