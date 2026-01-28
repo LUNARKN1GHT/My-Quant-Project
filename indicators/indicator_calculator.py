@@ -121,32 +121,31 @@ class IndicatorCalculator:
 
         return df
 
-
-class IndicatorAppender:
     @staticmethod
-    def add_trend_indicators(df):
-        """添加趋势指标: 移动平均线"""
-        # 计算 20日 和 60日 均线
-        close_prices = df['Close'].astype(float)
+    def add_selected_indicators(df, indicator_list):
+        """
+        根据列表添加选定的指标
+        :param df: 输入数据框
+        :param indicator_list: 指标名称列表，例如['sma', 'rsi', 'bollinger']
+        """
+        for indicator in indicator_list:
+            if indicator == 'sma':
+                df = TrendIndicators.add_sma(df)
+            elif indicator == 'ema':
+                df = TrendIndicators.add_ema(df)
+            elif indicator == 'macd':
+                df = TrendIndicators.add_macd(df)
+            elif indicator == 'rsi':
+                df = MomentumIndicators.add_rsi(df)
+            elif indicator == 'stochastics':
+                df = MomentumIndicators.add_stochastics(df)
+            elif indicator == 'bollinger':
+                df = VolatilityIndicators.add_bollinger_bands(df)
+            elif indicator == 'atr':
+                df = VolatilityIndicators.add_atr(df)
+            elif indicator == 'obv' and 'Volume' in df.columns:
+                df = VolumeIndicators.add_obv(df)
+            elif indicator == 'vwap' and 'Volume' in df.columns:
+                df = VolumeIndicators.add_vwap(df)
 
-        df['SMA_20'] = ta.sma(close_prices, length=20)
-        df['SMA_60'] = ta.sma(close_prices, length=60)
-        return df
-
-    @staticmethod
-    def add_momentum_indicators(df):
-        """添加动量指标: RSI, MACD"""
-        # RSI (相对强弱指数)
-        df['RSI'] = ta.rsi(df['Close'], length=14)
-
-        # MACD
-        macd = ta.macd(df['Close'])
-        df = pd.concat([df, macd], axis=1)
-        return df
-
-    @staticmethod
-    def add_volatility_indicators(df):
-        """添加波动率指标: 布林带"""
-        bbands = ta.bbands(df['Close'], length=20, std=2)
-        df = pd.concat([df, bbands], axis=1)
         return df
