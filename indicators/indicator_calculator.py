@@ -13,6 +13,25 @@ class BaseIndicator:
         raise NotImplementedError("子类必须实现calculate方法")
 
 
+class TrendIndicators(BaseIndicator):
+    """趋势指标计算器"""
+
+    @staticmethod
+    def add_sma(df, short_period=20, long_period=60):
+        """添加移动平均线指标"""
+        close_prices = df['Close'].astype(float)
+        df[f'SMA_{short_period}'] = ta.sma(close_prices, length=short_period)
+        df[f'SMA_{long_period}'] = ta.sma(close_prices, length=long_period)
+        return df
+
+    @staticmethod
+    def add_ema(df, period=20):
+        """添加指数移动平均线"""
+        close_prices = df['Close'].astype(float)
+        df[f'EMA_{period}'] = ta.ema(close_prices, length=period)
+        return df
+
+
 class IndicatorAppender:
     @staticmethod
     def add_trend_indicators(df):
