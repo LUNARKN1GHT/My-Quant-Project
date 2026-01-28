@@ -71,13 +71,10 @@ class DataLoader:
 
     @staticmethod
     def load_local(file_path: str):
-        """
-        读取本地数据并格式化时间索引
-        :param file_path: 需要读取的目录位置
-        :return: 数据的 df
-        """
-        df = pd.read_csv(file_path, index_col=0, parse_dates=True)
-        return df
+        """支持自动识别 Parquet 或 CSV"""
+        if file_path.endswith('.parquet'):
+            return pd.read_parquet(file_path)
+        return pd.read_csv(file_path, index_col=0, parse_dates=True)
 
     def batch_fetch_and_save(self, symbols: list, start: str, end: str, delay=1):
         """
