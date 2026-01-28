@@ -78,3 +78,24 @@ class DataLoader:
         """
         df = pd.read_csv(file_path, index_col=0, parse_dates=True)
         return df
+
+    def batch_fetch_and_save(self, symbols: list, start: str, end: str, delay=1):
+        """
+        批量下载多个股票的数据
+        :param symbols: 股票代码列表
+        :param start: 开始日期
+        :param end: 结束日期
+        :param delay: 请求间隔时间（秒），防止请求过于频繁
+        :return: 成功下载的股票数据字典
+        """
+        results = {}
+        for symbol in symbols:
+            print(f"正在下载 {symbol}...")
+            data = self.fetch_and_save(symbol, start, end)
+            if data is not None:
+                results[symbol] = data
+            # 添加延迟以避免API限制
+            time.sleep(delay)
+
+        return results
+
