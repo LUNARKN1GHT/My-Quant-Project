@@ -66,6 +66,24 @@ class VolatilityIndicators(BaseIndicator):
         return df
 
 
+class VolumeIndicators(BaseIndicator):
+    """成交量指标计算器"""
+
+    @staticmethod
+    def add_obv(df):
+        """添加能量潮指标"""
+        df['OBV'] = ta.obv(df['Close'], df['Volume'])
+        return df
+
+    @staticmethod
+    def add_vwap(df):
+        """添加成交量加权平均价（如果数据中有成交量信息）"""
+        if 'Volume' in df.columns:
+            typical_price = (df['High'] + df['Low'] + df['Close']) / 3
+            df['VWAP'] = (typical_price * df['Volume']).cumsum() / df['Volume'].cumsum()
+        return df
+
+
 class IndicatorAppender:
     @staticmethod
     def add_trend_indicators(df):
