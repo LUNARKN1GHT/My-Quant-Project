@@ -50,3 +50,24 @@ class DataEngine:
                 filepath = os.path.join(self.loader.base_path, local_files[0])
                 return self.loader.load_local(filepath)
         return None
+
+    def save_processed_data(self, base_path="../storage/processed"):
+        """保存处理后的数据（如带有技术指标的数据）到指定目录"""
+        if not os.path.exists(base_path):
+            os.makedirs(base_path)
+
+        saved_files = []
+        for symbol, df in self.universe_data.items():
+            if df is not None:
+                # 生成文件名
+                import datetime
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                file_name = f"{symbol}_processed_{timestamp}.csv"
+                save_path = os.path.join(base_path, file_name)
+
+                # 保存数据
+                df.to_csv(save_path)
+                saved_files.append(save_path)
+                print(f"数据已保存至: {save_path}")
+
+        return saved_files
