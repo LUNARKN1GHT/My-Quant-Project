@@ -1,15 +1,37 @@
 # 数据引擎
 import os
-from typing import List
+from typing import List, Dict
+
+import pandas as pd
 
 from data.data_loader import DataLoader
 
 
 class DataEngine:
-    def __init__(self, symbols: List[str]):
+    def __init__(self, symbols: List[str],
+                 raw_path: str = "storage/raw",
+                 processed_path: str = "storage/processed",
+                 cache_size: int = 50):
+        """
+        :param symbols: 初始股票池
+        :param raw_path:
+        :param processed_path:
+        :param cache_size: 内存中最多保留多少只股票的数据, 防止溢出
+        """
         self.symbols = symbols
-        self.loader = DataLoader()
-        self.universe_data = {}
+        # 使用更稳健的路径获取方式
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.raw_path = os.path.join(project_root, raw_path)
+        self.processed_path = os.path.join(project_root, processed_path)
+
+        self.loader = DataLoader(raw_path=self.raw_path)
+
+        # 内存缓存
+        self._cache: Dict[str, pd.DataFrame] = {}
+        self.cache_size = cache_size
+
+        # 确保目录存在
+        os.makedirs(self.processed_path, exist_ok=True)
 
     def update_all_data(self, start: str, end: str):
         """批量下载并存储"""
