@@ -6,15 +6,20 @@ import yfinance as yf
 
 
 class DataLoader:
-    def __init__(self, raw_path="storage/raw"):
+    def __init__(self, raw_path: str = None):
         """
         类初始化，设置程序的存储仓库
         :param raw_path: 项目的数据存储仓库，也可以自定义
         """
-        self.base_path = raw_path
-        # 确保路径存在
+        # 使用项目根目录作为基准, 避免 ../ 导致的路径混乱
+        if raw_path is None:
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.base_path = os.path.join(project_root, "storage", "raw")
+        else:
+            self.base_path = os.path.abspath(raw_path)
+
         if not os.path.exists(self.base_path):
-            os.makedirs(self.base_path)
+            os.makedirs(self.base_path, exist_ok=True)
 
     def fetch_and_save(self, symbol: str, start: str, end: str, force_download=False, drop_na=False):
         """
