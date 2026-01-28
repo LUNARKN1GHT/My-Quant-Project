@@ -76,31 +76,12 @@ class DataLoader:
             return pd.read_parquet(file_path)
         return pd.read_csv(file_path, index_col=0, parse_dates=True)
 
-    def batch_fetch_and_save(self, symbols: list, start: str, end: str, delay=1):
-        """
-        批量下载多个股票的数据
-        :param symbols: 股票代码列表
-        :param start: 开始日期
-        :param end: 结束日期
-        :param delay: 请求间隔时间（秒），防止请求过于频繁
-        :return: 成功下载的股票数据字典
-        """
+    def batch_fetch(self, symbols: list, start: str, end: str, delay: int = 1):
+        """批量获取并返回结果字典"""
         results = {}
-        for symbol in symbols:
-            print(f"正在下载 {symbol}...")
-            data = self.fetch_and_save(symbol, start, end)
-            if data is not None:
-                results[symbol] = data
-            # 添加延迟以避免API限制
+        for s in symbols:
+            df = self.fetch_and_save(s, start, end)
+            if df is not None:
+                results[s] = df
             time.sleep(delay)
-
         return results
-
-    def get_available_data(self):
-        """
-        获取本地已有的数据文件列表
-        :return: 文件列表及对应的信息
-        """
-        files = os.listdir(self.base_path)
-        csv_files = [f for f in files if f.endswith('.csv')]
-        return csv_files
