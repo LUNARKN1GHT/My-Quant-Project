@@ -33,6 +33,13 @@ class DataEngine:
         # 确保目录存在
         os.makedirs(self.processed_path, exist_ok=True)
 
+    def _manage_cache(self, symbol: str, df: pd.DataFrame):
+        """简单的缓存淘汰机制"""
+        if len(self._cache) >= self.cache_size:
+            first_key = next(iter(self._cache))
+            del self._cache[first_key]
+        self._cache[symbol] = df
+
     def update_all_data(self, start: str, end: str):
         """批量下载并存储"""
         for s in self.symbols:
