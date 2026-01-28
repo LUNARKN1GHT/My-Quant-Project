@@ -86,6 +86,16 @@ class DataEngine:
         self._cache[symbol] = df
         print(f"[DataEngine] 已保存加工数据: {save_path}")
 
+    def get_universe_generator(self, start: str = None, end: str = None):
+        """
+        高级功能: 生成器模式.
+        需要跑全市场回测时, 用这个方法可以一只只处理, 不占内存.
+        """
+        for s in self.symbols:
+            df = self.get_symbol_data(s, start, end)
+            if df is not None:
+                yield s, df
+
     def update_all_data(self, start: str, end: str):
         """批量下载并存储"""
         for s in self.symbols:
