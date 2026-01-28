@@ -1,25 +1,20 @@
-# setting.yaml - 全局量化配置
-project_name: "My-Quant-Project"
-
-# 路径管理
+# 路径配置
 paths:
   raw_data: "storage/raw"
   processed_data: "storage/processed"
   reports: "reports"
 
+# 回测与数据配置
+backtest:
+  symbols: [ "NVDA", "AAPL", "TSLA", "MSFT", "AMD", "GOOGL", "AMZN" ]
+  start_date: "2018-01-01"  # 拉长周期到8年，大数据量
+  end_date: "2025-12-31"
+  initial_capital: 100000
+  commission: 0.0005        # 调低佣金，模拟真实大额交易成本
+
 # 策略参数
 strategy:
-  name: "MaRsiStrategy"
-  symbols: [ "NVDA", "AAPL", "TSLA" ]
   params:
     sma_short: 20
     sma_long: 60
-    rsi_period: 14
     rsi_limit: 70
-
-# 回测设置
-backtest:
-  initial_capital: 100000
-  commission: 0.001
-  start_date: "2023-01-01"
-  end_date: "2025-12-31"
