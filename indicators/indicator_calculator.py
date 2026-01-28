@@ -32,6 +32,23 @@ class TrendIndicators(BaseIndicator):
         return df
 
 
+class MomentumIndicators(BaseIndicator):
+    """动量指标计算器"""
+
+    @staticmethod
+    def add_rsi(df, period=14):
+        """添加相对强弱指数"""
+        df[f'RSI_{period}'] = ta.rsi(df['Close'], length=period)
+        return df
+
+    @staticmethod
+    def add_stochastics(df, k=14, d=3):
+        """添加随机指标"""
+        stoch = ta.stoch(high=df['High'], low=df['Low'], close=df['Close'], k=k, d=d)
+        df = pd.concat([df, stoch], axis=1)
+        return df
+
+
 class IndicatorAppender:
     @staticmethod
     def add_trend_indicators(df):
