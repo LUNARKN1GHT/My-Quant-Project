@@ -77,6 +77,15 @@ class DataEngine:
         for s in self.symbols:
             self.loader.fetch_and_save(s, start, end, force_download=force)
 
+    def save_processed(self, symbol: str, df: pd.DataFrame):
+        """保存加工后的数据, 不再使用时间戳, 采用覆盖写模式"""
+        # 推荐使用 parquet 提升后续回测速度
+        save_path = os.path.join(self.processed_path, f"{symbol}.parquet")
+        df.to_parquet(save_path)
+        # 更新缓存
+        self._cache[symbol] = df
+        print(f"[DataEngine] 已保存加工数据: {save_path}")
+
     def update_all_data(self, start: str, end: str):
         """批量下载并存储"""
         for s in self.symbols:
