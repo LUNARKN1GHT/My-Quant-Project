@@ -71,3 +71,18 @@ class DataEngine:
                 print(f"数据已保存至: {save_path}")
 
         return saved_files
+
+    def load_processed_data(self, symbol: str, base_path="../storage/processed"):
+        """从处理过的数据目录加载特定股票的数据"""
+        import glob
+        pattern = os.path.join(base_path, f"{symbol}_processed_*.csv")
+        files = glob.glob(pattern)
+
+        if not files:
+            print(f"未找到 {symbol} 的处理后数据")
+            return None
+
+        # 获取最新的文件
+        latest_file = max(files, key=os.path.getctime)
+        df = self.loader.load_local(latest_file)
+        return df
