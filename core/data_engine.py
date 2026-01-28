@@ -71,6 +71,12 @@ class DataEngine:
 
         return df.copy()
 
+    def update_universe(self, start: str, end: str, force: bool = False):
+        """批量同步股票池到本地"""
+        print(f"[DataEngine] 开始批量同步 {len(self.symbols)} 只股票...")
+        for s in self.symbols:
+            self.loader.fetch_and_save(s, start, end, force_download=force)
+
     def update_all_data(self, start: str, end: str):
         """批量下载并存储"""
         for s in self.symbols:
