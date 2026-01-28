@@ -25,9 +25,16 @@ class DataLoader:
         try:
             print(f"开始同步 {symbol} 数据 （{start} 至 {end}）...")
 
-            # 下载数据
+            # 1. 下载数据
             data = yf.download(symbol, start=start, end=end, auto_adjust=True)
 
+            # 如果列是多层索引,我们只取一列
+            if isinstance(data.columns, pd.MultiIndex):
+                data.columns = data.columns.get_level_values(0)
+
+            # 2. 检查并转换类型
+            data = data.astype(float)
+            
             if data.empty:
                 print(f"警告：未获取到 {symbol} 的数据")
                 return None
