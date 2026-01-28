@@ -49,6 +49,23 @@ class MomentumIndicators(BaseIndicator):
         return df
 
 
+class VolatilityIndicators(BaseIndicator):
+    """波动率指标计算器"""
+
+    @staticmethod
+    def add_bollinger_bands(df, period=20, std=2):
+        """添加布林带"""
+        bbands = ta.bbands(df['Close'], length=period, std=std)
+        df = pd.concat([df, bbands], axis=1)
+        return df
+
+    @staticmethod
+    def add_atr(df, period=14):
+        """添加平均真实波幅"""
+        df[f'ATR_{period}'] = ta.atr(df['High'], df['Low'], df['Close'], length=period)
+        return df
+
+
 class IndicatorAppender:
     @staticmethod
     def add_trend_indicators(df):
