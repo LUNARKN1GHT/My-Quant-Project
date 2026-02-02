@@ -56,3 +56,15 @@ class IndicatorCalculator:
     def get_result(self) -> pd.DataFrame:
         """返回计算后的完整的 DataFrame"""
         return self.df
+
+    def add_kdj(self, n=9, m1=3, m2=3, prefix: str = "KDJ"):
+        """添加 KDJ 指标"""
+        kdj_df = ta.kdj(self.df['High'], self.df['Low'], self.df['Close'], length=n, signal=m1, runoff=m2)
+        kdj_df.columns = [f"{prefix}_K", f"{prefix}_D", f"{prefix}_J"]
+        self.df = pd.concat([self.df, kdj_df], axis=1)
+        return self
+
+    def add_momentum_slope(self, col: str, window: int = 5, prefix: str = "Slope"):
+        """计算指定列的斜率（动量变化率）"""
+        self.df[f"{prefix}_{col}_{window}"] = self.df[col].diff(window) / window
+        return self
