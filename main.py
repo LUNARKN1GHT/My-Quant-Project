@@ -1,8 +1,6 @@
 import os
 import sys
 
-from utils.dashboard import DashboardGenerator
-
 # 确保项目根目录在系统路径中，防止导入失败
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -14,6 +12,8 @@ from core.backtest_engine import BacktestEngine
 from utils.visualizer import Visualizer
 from strategies.mean_reversion import BollingerMeanReversion
 from utils.html_report import HTMLVisualizer
+from utils.dashboard import DashboardGenerator
+from machine_learning.feature_importance import FeatureImportanceEngine
 
 
 def run_pipeline():
@@ -75,12 +75,19 @@ def run_pipeline():
 
     all_metrics = []
 
+    ai_engine = FeatureImportanceEngine(report_path=cfg["paths"]["reports"])
+
     for symbol, df_sig in signals_dict.items():
         # 执行回测计算
         results = backtester.run(symbol, df_sig)
 
+        # 运行 AI 分析
+        top_features_dict = ai_engine.analyze(symbol, results)
+        top_features_str = ", ".join(list(top_features_dict.keys())[::-1][:3])
+
         # 终端打印性能指标
         m = backtester.calculate_advanced_metrics(symbol, results)
+        m["Top Drivers (AI)"] = top_features_str
         all_metrics.append(m)
 
         # 保存图片报告
