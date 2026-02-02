@@ -1,6 +1,8 @@
 import os
 import sys
 
+from strategies.ml_strategy import MLStrategy
+
 # 确保项目根目录在系统路径中，防止导入失败
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -61,6 +63,8 @@ def run_pipeline():
         strategy = MaRsiStrategy(symbols=cfg["backtest"]["symbols"])
     elif cfg["strategy"]["active_strategy"] == "BollingerMeanReversion":
         strategy = BollingerMeanReversion(symbols=cfg["backtest"]["symbols"])
+    elif cfg["strategy"]["active_strategy"] == "MLStrategy":
+        strategy = MLStrategy(symbols=cfg["backtest"]["symbols"], prob_threshold=0.6)
     signals_dict = strategy.generate_all_signals(engine)
 
     # 5. 回测与可视化
