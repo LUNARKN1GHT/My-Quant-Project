@@ -107,6 +107,8 @@ class HTMLVisualizer:
         )
 
         # 保存为 HTML 文件
-        save_path = os.path.join(self.save_dir, f"{symbol}_interactive.html")
+        symbol_dir = os.path.join(self.save_dir, symbol)
+        os.makedirs(symbol_dir, exist_ok=True)
+        save_path = os.path.join(symbol_dir, f"{symbol}_interactive.html")
         fig.write_html(save_path)
         print(f"[HTMLVisualizer] 交互式报告已生成: {save_path}")

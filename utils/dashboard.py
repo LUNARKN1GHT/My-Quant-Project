@@ -19,7 +19,7 @@ class DashboardGenerator:
         # 1. 核心改进：将 Symbol 列转换为 HTML 链接
         # 假设详细报告的文件名格式为: Symbol_interactive.html
         df["Report"] = df["Symbol"].apply(
-            lambda x: f'<a href="{x}_interactive.html" target="_blank">🔍 详情报告</a>'
+            lambda x: f'<a href="./{x}/{x}_interactive.html" target="_blank">🔍 详情报告</a>'
         )
 
         # 2. 提取配置信息用于展示

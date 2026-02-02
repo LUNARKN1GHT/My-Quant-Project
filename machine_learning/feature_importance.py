@@ -61,19 +61,21 @@ class FeatureImportanceEngine:
         plt.xlabel("Importance Score")
         plt.tight_layout()
 
-        save_path = os.path.join(self.save_dir, f"{symbol}_feature_importance.png")
-        plt.savefig(save_path)
+        # --- 增加子文件夹路径 ---
+        symbol_dir = os.path.join(self.save_dir, symbol)
+        os.makedirs(symbol_dir, exist_ok=True)
+
+        img_path = os.path.join(symbol_dir, f"{symbol}_feature_importance.png")
+        plt.savefig(img_path)
         plt.close()
 
         # --- 保存为 JSON 数据 ---
-        json_save_path = os.path.join(
-            self.save_dir, f"{symbol}_feature_importance.json"
-        )
+        json_save_path = os.path.join(symbol_dir, f"{symbol}_feature_importance.json")
         with open(json_save_path, "w", encoding="utf-8") as f:
             # 只取前 5 个最重要的特征存入 JSON，方便摘要显示
             top_features = importances.tail(5).to_dict()
             json.dump(top_features, f, indent=4)
 
-        print(f"🤖 [AI] 特征重要性分析已完成: {save_path}")
+        print(f"🤖 [AI] 特征重要性分析已完成: {img_path}")
 
         return top_features
