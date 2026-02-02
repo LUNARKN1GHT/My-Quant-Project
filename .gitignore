@@ -2,3 +2,4 @@
 *.parquet
 *.png
 *.html
+.idea
