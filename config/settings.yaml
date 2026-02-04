@@ -6,10 +6,12 @@ paths:
 
 # 回测与数据配置
 backtest:
-  symbols: [ "NVDA", "AAPL", "TSLA", "MSFT", "AMD", "GOOGL", "AMZN" ]
-  start_date: "2018-01-01"  # 拉长周期到8年，大数据量
+  mode: "portfolio" # 可选："individual"（单个） 或 "portfolio"（组合）
+  symbols: [ "NVDA", "AAPL", "TSLA", "MSFT", "AMD", "GOOGL", "AMZN", "IBM", "NFLX", "ORCL" ]
+  start_date: "2010-01-01"  # 拉长周期到8年，大数据量
   end_date: "2025-12-31"
-  initial_capital: 100000
+  initial_capital: 100000 # 初始资金
+  max_stock_weight: 0.15 # 组合模式下，单只股票最大占用 15% 资金
   commission: 0.0005        # 调低佣金，模拟真实大额交易成本
 
 # 策略参数

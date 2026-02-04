@@ -13,7 +13,7 @@ class BacktestEngine:
         self.initial_capital = initial_capital
         self.commission = commission
 
-    def run(self, symbol: str, df: pd.DataFrame) -> pd.DataFrame:
+    def run(self, symbol: str, df: pd.DataFrame, pos_size: float = 1.0) -> pd.DataFrame:
         """
         运行回测
         """
@@ -69,7 +69,7 @@ class BacktestEngine:
 
         # 3. 计算策略收益 (昨天的持仓决定了今天的收益)
         results["Strategy_Return"] = (
-            results["Position"].shift(1) * results["Market_Return"]
+            results["Position"].shift(1) * results["Market_Return"] * pos_size
         )
 
         # 4. 扣除手续费 (当持仓发生变化时产生交易)
