@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -9,6 +10,7 @@ class HTMLVisualizer:
     def __init__(self, report_path: str = "reports"):
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.save_dir = os.path.join(project_root, report_path)
+        self.report_path = os.path.join(report_path)
         os.makedirs(self.save_dir, exist_ok=True)
 
     def generate_interactive_report(self, symbol: str, results: pd.DataFrame):
@@ -112,3 +114,18 @@ class HTMLVisualizer:
         save_path = os.path.join(symbol_dir, f"{symbol}_interactive.html")
         fig.write_html(save_path)
         print(f"[HTMLVisualizer] 交互式报告已生成: {save_path}")
+
+    def generate_portfolio_visuals(self, results, weights_df):
+        """生成组合投资专属的 HTML 报告"""
+        # 1. 绘制资产分配堆叠图
+        fig = px.area(
+            weights_df,
+            title="组合资产分配动态 (Daily Weights Allocation)",
+            labels={"value": "权重 (%)", "variable": "资产"},
+            template="plotly_dark",
+        )
+
+        # 2. 导出为 HTML
+        save_path = os.path.join(self.report_path, "portfolio_allocation.html")
+        fig.write_html(save_path)
+        print(f"📊 组合持仓报告已生成: {save_path}")

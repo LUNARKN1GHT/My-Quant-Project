@@ -19,8 +19,21 @@ class PortfolioEngine:
         cash = self.initial_capital
         holdings = {s: 0 for s in all_signals_dict.keys()}
         history = []
+        holdings_history = []  # 新增：专门记录持仓分布
 
         for date in common_dates:
+            daily_holdings_value = {
+                s: holdings[s] * all_signals_dict[s].loc[date, "Close"]
+                for s in holdings
+            }
+            total_equity = cash + sum(daily_holdings_value.values())
+
+            # 记录当前权分布 (Weight %)
+            weights = {s: val / total_equity for s, val in daily_holdings_value.items()}
+            weights["Cash"] = cash / total_equity
+            weights["Date"] = date
+            holdings_history.append(weights)
+
             prev_total_equity = cash + sum(
                 holdings[s] * all_signals_dict[s].loc[date, "Open"] for s in holdings
             )
@@ -56,7 +69,7 @@ class PortfolioEngine:
                     "Date": date,
                     "Total_Equity": total_equity,
                     "Cash": cash,
-                    "Trades": current_trade_count,  # 核心修复：添加 Trades 列
+                    "Trades": current_trade_count,
                     "Strategy_Return": (
                         (total_equity / prev_total_equity - 1)
                         if prev_total_equity != 0
@@ -79,4 +92,6 @@ class PortfolioEngine:
         # 3. 兼容性对齐
         res_df["Equity_Curve"] = res_df["Total_Equity"]
         res_df["Close"] = res_df["Total_Equity"]  # 这里的 Close 代表组合的“价格”
+        # 将持仓历史转为 DataFrame 备用
+        self.weights_df = pd.DataFrame(holdings_history).set_index("Date")
         return res_df

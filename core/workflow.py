@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 
 from core.backtest_engine import BacktestEngine
@@ -116,6 +118,20 @@ class WorkflowManager:
         )
 
         portfolio_results = port_engine.run_portfolio(signals_dict)
+
+        weights_path = os.path.join(
+            self.cfg["paths"]["reports"], "portfolio_weights.csv"
+        )
+        port_engine.weights_df.to_csv(weights_path)
+
+        self.html_viz.generate_portfolio_visuals(
+            portfolio_results, port_engine.weights_df
+        )
+
+        # 3. 生成专属报告（包含持仓堆叠图）
+        self.html_viz.generate_portfolio_visuals(
+            portfolio_results, port_engine.weights_df
+        )
 
         # 3. 特殊处理：将组合的整体表现塞进 metrics 列表以便展示
         # 这里需要你扩展 calculate_advanced_metrics 来支持组合数据

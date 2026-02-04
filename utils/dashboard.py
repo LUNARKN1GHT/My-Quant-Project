@@ -81,7 +81,21 @@ class DashboardGenerator:
         </html>
         """
 
+        # 增加一个组合投资的快捷入口
+        portfolio_link = ""
+        if config["backtest"].get("mode") == "portfolio":
+            portfolio_link = """
+                    <div class="portfolio-action-box" style="background: #2c3e50; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #3498db;">
+                        <h3 style="color: #3498db; margin-top: 0;">📊 组合投资深度洞察</h3>
+                        <p>系统检测到您运行的是<b>组合模式</b>。您可以查看资金在各资产间的动态分配情况：</p>
+                        <a href="portfolio_allocation.html" target="_blank" 
+                           style="background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                           打开持仓堆叠图 (Heatmap)
+                        </a>
+                    </div>
+                    """
+
         with open(self.save_path, "w", encoding="utf-8") as f:
-            f.write(html_template)
+            f.write(html_template + portfolio_link)
 
         print(f"🚀 [Dashboard] 带有参数展示和跳转功能的看板已生成: {self.save_path}")
