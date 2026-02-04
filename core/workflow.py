@@ -124,6 +124,7 @@ class WorkflowManager:
         )
         port_engine.weights_df.to_csv(weights_path)
 
+        # 生成可视化
         self.html_viz.generate_portfolio_visuals(
             portfolio_results, port_engine.weights_df
         )
