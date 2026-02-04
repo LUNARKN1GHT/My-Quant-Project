@@ -2,6 +2,7 @@ from core.backtest_engine import BacktestEngine
 from core.data_engine import DataEngine
 from indicators.indicator_calculator import IndicatorCalculator
 from machine_learning.feature_importance import FeatureImportanceEngine
+from machine_learning.feature_processor import FeatureProcessor
 from utils.dashboard import DashboardGenerator
 from utils.helpers import load_config
 from utils.html_report import HTMLVisualizer
@@ -32,10 +33,13 @@ class WorkflowManager:
 
     def prepare_features(self):
         """第二步：特征工程，支持链式调用"""
-        print("🧬 构建特征矩阵...")
+        print("🧬 构建特征矩阵与因子合成...")
+        processor = FeatureProcessor(n_components=0.95)
+
         for s in self.cfg["backtest"]["symbols"]:
             df = self.engine.get_symbol_data(s)
             if df is not None:
+                # 1. 计算基础指标
                 calc = IndicatorCalculator(df)
                 # 这里的参数可以未来也写进 YAML
                 processed_df = (
@@ -46,7 +50,11 @@ class WorkflowManager:
                     .clean_data()
                     .get_result()
                 )
-                self.engine.save_processed(s, processed_df)
+                # 2. 因子合成：将多个相关指标合成独立的 PCA 特征
+                df_synthesized, pca_features = processor.fit_transform(processed_df)
+
+                # 3. 存储带合成特征的数据
+                self.engine.save_processed(s, df_synthesized)
 
     def run_backtest(self, strategy_instance):
         """第三步：执行指定策略的回测"""
