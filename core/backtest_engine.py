@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from core.risk_manager import RiskManager
+
 
 class BacktestEngine:
     def __init__(self, initial_capital: float = 100000.0, commission: float = 0.001):
@@ -15,8 +17,43 @@ class BacktestEngine:
         """
         运行回测
         """
+        # 0. 加入风险管理
+        risk_mgr = RiskManager()
+        df = risk_mgr.calculate_atr_exits(df)
+
+        position = 0
+        entry_price = 0
+        stop_loss_price = 0
+        take_profit_price = 0
+
         if "Signal" not in df.columns:
             raise ValueError(f"数据集中缺少 Signal 列，请先运行策略逻辑。")
+
+        signals = df["Signal"].values
+        close_prices = df["Close"].values
+        sl_prices = df["Initial_SL"].values
+        tp_prices = df["Initial_TP"].values
+
+        exit_signals = np.zeros(len(df))
+        for i in range(1, len(df)):
+            # --- 场景 A: 当前持仓，检查是否需要止损或止盈 ---
+            if position == 1:
+                if (
+                    close_prices[i] <= stop_loss_price
+                    or close_prices[i] >= take_profit_price
+                ):
+                    position = 0
+                    exit_signals[i] = -1  # 强制平仓信号
+                    continue
+
+            # --- 场景 B: 当前空仓，检查 AI 买入信号 ---
+            if position == 0 and signals[i] == 1:
+                position = 1
+                entry_price = close_prices[i]
+                stop_loss_price = sl_prices[i]
+                take_profit_price = tp_prices[i]
+
+        df.loc[exit_signals == -1, "Signal"] = -1
 
         results = df.copy()
 
