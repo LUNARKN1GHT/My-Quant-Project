@@ -1,5 +1,6 @@
 from core.backtest_engine import BacktestEngine
 from core.data_engine import DataEngine
+from core.position_manager import PositionManager
 from indicators.indicator_calculator import IndicatorCalculator
 from machine_learning.feature_importance import FeatureImportanceEngine
 from machine_learning.feature_processor import FeatureProcessor
@@ -59,23 +60,40 @@ class WorkflowManager:
     def run_backtest(self, strategy_instance):
         """第三步：执行指定策略的回测"""
         print(f"⚔️ 执行策略: {strategy_instance.name}")
+        pos_mgr = PositionManager(max_cap=0.25)  # 设定单股最高 25% 仓位
         signals_dict = strategy_instance.generate_all_signals(self.engine)
 
         for symbol, df_sig in signals_dict.items():
             # 1. 运行回测
-            results = self.backtester.run(symbol, df_sig)
+            initial_results = self.backtester.run(symbol, df_sig)
+
+            temp_m = self.backtester.calculate_advanced_metrics(symbol, initial_results)
+
+            win_rate = float(temp_m["Win Rate"].strip("%")) / 100
+            profit_factor = (
+                float(temp_m["Profit Factor"])
+                if temp_m["Profit Factor"] != "inf"
+                else 2.0
+            )
+
+            suggested_size = pos_mgr.calculate_kelly_size(win_rate, profit_factor)
+            print(f"💰 [{symbol}] 凯利仓位应用: {suggested_size:.2%}")
+
+            # --- 使用建议仓位跑真正的最终回测 ---
+            final_results = self.backtester.run(symbol, df_sig)
 
             # 2. AI 洞察 (可选)
-            top_drivers = self.ai_engine.analyze(symbol, results)
+            top_drivers = self.ai_engine.analyze(symbol, initial_results)
             top_drivers_str = ", ".join(list(top_drivers.keys())[::-1][:3])
 
             # 3. 收集指标
-            m = self.backtester.calculate_advanced_metrics(symbol, results)
+            m = self.backtester.calculate_advanced_metrics(symbol, initial_results)
             m["Top Drivers (AI)"] = top_drivers_str
+            m["Position Size"] = f"{suggested_size:.2%}"
             self.all_metrics.append(m)
 
             # 4. 生成单独报告
-            self.html_viz.generate_interactive_report(symbol, results)
+            self.html_viz.generate_interactive_report(symbol, initial_results)
 
     def finalize(self):
         """第四步：生成总看板"""
